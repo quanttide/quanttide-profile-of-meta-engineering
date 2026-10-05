@@ -1,12 +1,137 @@
-# qtcloud-work CLI 依赖图与范畴论分析
+# qtcloud-work CLI 建模问题：范畴论分析
 
-对象是 quanttide-work 仓 `apps/qtcloud-work/src/cli` 的源码：crate `qtcloud-work-cli`，二进制 `qtcloud-work`，版本 0.1.0-beta.2，edition 2024，基线提交 `d6f63cc`（工作区干净）。`src/` 51 个文件 5137 行，`tests/` 17 个文件 1601 行，42 个测试，`cargo test --locked` 全绿。
+这份档案写给产品经理：不需要会 Rust，也不需要读过源码。每个范畴词第一次出现都用一句话说清它是什么，随后摆一条代码实况，最后说它暴露了平台建模的什么问题。证据分两种并在文中标明——「实跑」是临时工作区真跑出来的值，「读码」是从源码直接读出的结论。
 
-方法：逐文件读完 `src/`，用 `grep crate::` 拉引用边，并剔除文档注释里的提法——注释与约定文档里还有指向已不存在路径的引用（`crate::task::execute`、`locate/`，见「约定文档对账」）；再在临时工作区真跑一遍二进制，调用链与输出都以实跑结果为准，实测值附在对应小节。
+分析对象是量潮工作云 CLI（crate `qtcloud-work-cli`，二进制 `qtcloud-work`），源码在 quanttide-work 仓 `apps/qtcloud-work/src/cli`，基线提交 `d6f63cc`，版本 0.1.0-beta.2。`src/` 51 个文件 5137 行，42 个测试全绿，格式、严格 lint 与单文件行数三条门禁全过。也就是说，这是在一份「门禁全绿」的代码上找建模问题，不是找 bug：测试保证每条命令的行为对，建模问题问的是另一件事——同一个概念在平台里被定义成了几份、有几条互相打架的路、图上哪里不该回头却回了。
 
-第一部分是依赖图，从模块到结构体到函数；第二部分把同一张图摆成范畴论的说法，每个说法都落回具体签名与实测值，跑不了的给到文件行。
+结论五条，正文第二到第六节逐条给证据；第七节是同一张图上健康的部分，第八节是可以变成验收的等式，第九节把依赖图作为证据附上。
 
-## 一、依赖图
+1. 身份：同一枚凭证，规格、注释、代码三处定义算出三个值（第二节）。
+2. 表示：同一件东西有两条不一致的 JSON，还有一条命令绕开统一答复（第三节）。
+3. 箭头重复：路径显示、取字段这类小概念各有两三个实现（第四节）。
+4. 环：工作区一个概念顶两顶帽子，全仓的环汇在它身上，分层规矩写了没有钉子（第五节）。
+5. 约定滞后：结构重构后，给人看的说明书没跟上（第六节）。
+
+## 一、平台摆成一张图
+
+范畴的一句话定义：把平台拆成一堆「对象」（名词，平台里真实存在的概念）和一堆「箭头」（从一个对象变出另一个对象的函数），箭头能首尾相接地接下去，叫复合。
+
+对象就是这些概念，源码里各有其名：定义侧是工作流、步骤、判据（`Workflow` / `Step` / `Criterion`）；账本侧是工单、工作记录、事件（`WorkOrder` / `WorkRecord` / 事件流的一行）；答复侧是结果信封（`Outcome`）、目录（`Catalog`）、材料（`Material`）；身份是凭证（UUID 字符串）。场所侧要单独点名：它其实是两个对象——`Workspace` 是工作区的身份（这台机器上这个工作区是谁），`LocalWorkspace` 是落点（根、账本、工作流目录、产物各在哪）。第五节的问题正出在这两个对象被焊在一起。
+
+箭头按方向分四组，各举真实的：
+
+1. 文件 → 概念（读入）：`validate` 先判这份 YAML 合不合法，`Workflow::of` / `WorkOrder::of` 再读成内存里的对象。
+2. 概念 → 文件或 JSON（写出）：`WorkOrder::to_yaml` 落盘、`events::yaml_to_json` 装事件、`Outcome::to_json` 封信封。
+3. 概念 → 概念（内部变换）：`Workflow::credentials` 补身份、`Criterion::expanded` 换占位、`progress::*` 由流水推进度。
+4. 概念 → 答复 → 屏幕（对外）：十八个动作把任何概念装进 `Outcome`，`emit` 打印并给退出码；`health` 是例外，见第三节。
+
+```text
+文件（YAML）──读入校验──→ 定义：工作流 ──→ 步骤 ──→ 判据
+定义 ──补凭证──→ 带身份的定义          定义 ──核对──→ 核对结论
+工单 ←──开单时引一条定义──            工单 ──追加一笔──→ 工单（新）
+工单 ──跑判据、AI 跑一步──→ 结果信封 ──emit──→ 屏幕 / 文件 / 退出码
+定义与工单 ──发事件──→ 事件流（账本里的 JSONL，一行一条）
+工作区（身份 + 落点）←──上面每个环节都来问路径与身份
+```
+
+下面五个问题，都是这张图上的三种病：一个对象被定义成了几份（第二、四节），该重合的两条路没重合（第三节），图上汇了不该汇的环（第五节）；第六节是图与说明书脱节。
+
+## 二、身份：同一枚凭证，三处定义算出三个值
+
+身份的一句话定义：平台用 UUID 回答「这一个东西是谁」——工作流、步骤、工单、流水各一枚，跨机器、跨时间对账全靠它。所以「这枚 id 怎么算出来」是平台最应该只有一份的定义。
+
+实跑：拿同一个工作区 id `d169ce33-1daf-446b-a7e7-229bdd49a3b4`、名字 `demo`、钉死的命名空间 `90cf5627-95f3-5e25-ba48-47d50dee6e09`，三处文字各给出一种串法：
+
+| 来源 | 串法 | uuid5 算出的值 |
+|:--|:--|:--|
+| 规格页（workflow.md:18） | `工作区id/工作流名` | `03a3ddd1-302e-50f1-ace5-d2e74b5777f4` |
+| 代码注释（ids.rs:16-17） | `工作区id/workflow/工作流名` | `8478d7a7-231c-50b4-902f-dd97ac575e8e` |
+| 代码实现（ids.rs:28-31） | `工作区id/工作流名/workflow` | `7976aabb-d5a9-577a-ae60-39baab92ed87` |
+
+第三行是实跑 `workflow show demo` 打出的 id，工单封面与事件负载里也是它；前两行是规格页与注释各自写的串法，都算不出它。哪一处是本意，由规格侧定，本档案只报告——但对产品的含义是明确的：将来任何一端（服务端、另一个工具）照规格页去实现，两端算出的 id 就不同，同一条工作流会被认成两条。
+
+第二件事，实跑的改名实验，它是身份问题的另一半：
+
+1. 题目：建一条两步工作流（甲、乙），开工单，人做完「甲」，然后把工作流里的「甲」改名成「丙」。
+2. 各处实际返回：改名前 `order show` 报「进度：1/2　下一步：乙」；改名后报「进度：0/2　下一步：丙」，流水里那笔记录还在（`step: 甲`、`step_id: 7c42bd47-8bde-5d0d-b8c2-6262d62c0802`），但不再算走过。
+3. 白话：进度是拿流水里的步骤名去对定义里的步骤名算出来的，名字一改就对不上；账上那枚 id 也没人用来对账——校验只检查它是 UUID 格式，不与工作流核对。名与 id 双存，实际只用了名。
+
+建模问题：平台的「身份」在规格、注释、代码三处各有一份定义，只有代码那份在生效；流水里同时存名与 id，身份体系只建了一半。产品侧看到的现象是：改一个步骤名，历史工单的进度会静默归零，之前做完的不再算数，且没有任何提示。
+
+## 三、表示：同一件东西两条不一致的 JSON，还有一条命令绕开统一答复
+
+交换图的一句话定义：从同一件东西出发去同一个目的地，走两条路本该得到同一个结果；画成方框，两边结果相等叫交换，不等就是建模上的「同一件事有两个真相」。
+
+第一个方框不交换，实跑同一条 `demo` 定义，两种 JSON 摆在一起：
+
+```text
+事件 WorkflowCreated 里的 criteria     → [{"executor": "rule", "description": "存在：data/journal/README.md"}]
+workflow show --json 的 payload.criteria → [{"executor": "rule", "path": "data/journal/README.md"}]
+```
+
+左路是写事件时手搓的 JSON，判据的 `path` 字段被折进一句描述，还补了派生 id；右路是把 YAML 原样搬进 JSON，字段齐全但没有 id。两条路从同一个定义出发，落点不同——以后要改判据字段，得同时改两处，而且现在已经不一致。
+
+第二个方框里有一条路根本不进图：平台自己立的规矩是「一次动作一份答复」，十八个动作都产出 `Outcome`，经 `emit` 打印、按 `--json` 出同一套信封、按 `--out` 落文件、退出码 0 或 1。`health` 不走这条通道。实跑（指向一个拒绝连接的本地端口）：`--json health` 的 stdout 全空，stderr 一行「错误: 请求 … Connection refused」，退出码 1——没有 `ok`/`lines` 那层信封；带 `--out` 时目标文件根本没有被创建，这个选项对 `health` 无效。
+
+第三处分叉是读码：写动作的「预演」（`--dry-run`）在两个分派文件里各写一份，九处手写分支、九句手写文案（工作流三条、工单五条、审计一条），预演不是动作自带的属性，而是复制在各处的判断。新增一条命令时漏掉哪一处，预演就缺哪一条，没有东西会提醒。
+
+建模问题：答复通道有一个例外，定义的表示有两套，预演有九份拷贝。平台把 AI 与脚本定位成第一等调用方，而对它们来说这三处都意味着同一个风险——每加一条命令，都可能再漏掉一处一致性。
+
+## 四、箭头重复：同一个小概念，仓里有两三把尺子
+
+一句话定义：两个函数吃同样的输入、本该给同样的输出，它们就是本该重合成一条的箭头；重合不了，说明概念没收敛，改动会漏。
+
+- 路径显示短一点：`workspace::short`（local.rs:214，按字符串剥前缀）与 `catalog::short`（catalog/mod.rs:84，按路径组件剥）。读码可证的差异：路径正好等于根时，前者给原样，后者给空串。
+- 取一个字符串字段：`fields::text_of`、`workflow/yaml::text_of`、`order/model::text_of` 三份实现，语义相同（都取值、去空白、缺了当空）。
+- 工作流内容转 JSON：两条，已在第三节实跑。
+
+建模问题：三组重复就是三处改动点，改一处不会有任何人提醒另一处。平台目前还没有把「显示路径」「读字段」这类小概念收成一处，这正是第二个问题（一个概念几份定义）在小零件上的重演。
+
+## 五、环：工作区这一个概念顶着两顶帽子
+
+环的一句话定义：A 认识 B、B 也认识 A，图上就成环。环本身不是病，病在环里那条「不该回头的边」没有测试看着。
+
+读码的结果，`src/` 里有三个双向环：工作区 ⇄ 工单、工作区 ⇄ 事件、工单 ⇄ 话术（给 AI 的提示词）；外加一个三元环，工作区 → 工单 → 工作流 → 工作区。多数环里有一条只传类型不跑逻辑（编译器不查、运行时不走），拆起来容易；唯一两侧都是真调用的是工作区 ⇄ 事件——事件落盘要先问工作区身份，工作区开账又要先发一个事件，它靠「先把身份文件写盘、再发第一个事件」这个顺序终止，顺序一动就无限递归，而这个顺序没有测试钉住。
+
+越线一处（读码）：工单执行调用了审计服务四次，而 CONTRIBUTING 写明「服务可依赖聚合，聚合不得依赖服务」；这一条同样没有测试，唯一有测试盯着的方向规矩是「谁都不许依赖入口层」。
+
+白话：「工作区」同时是业务概念（一次工作的边界）和物理概念（文件落哪、账本开哪），所以每个环节都要认识它——全仓 16 个文件引它，所有环都汇在这一个点上。分层的规矩是写了的，但只有「谁都不许依赖入口层」这一条有测试兜底；规矩要生效，得先变成能跑的东西。
+
+## 六、约定滞后：结构变了，说明书没跟上
+
+| 文档与位置 | 写的 | 现状（读码） |
+|:--|:--|:--|
+| CONTRIBUTING.md:13 分层表 | 适配层列有 `locate/` | 目录已不存在，并入了 `workspace/`（提交 `79d0204`） |
+| CONTRIBUTING.md:33 依赖方向 | 「聚合之间的环已经不存在，workspace 一件也不引」 | `workspace/local.rs` 引工单与资产表，上一节三个环都在 |
+| dev-guide/index.md:15、46、60 | 落点图与正文三处列 `locate/` | 同上，图滞后于两次重构 |
+| criterion/model.rs:96 注释 | 落点见 `crate::task::execute` | 仓里没有 `task` 模块，实为 `order::execute` |
+| tests/contract.rs 扫描清单 | 45 行文件名 | 三个文件各列了两次 |
+| Cargo.toml 依赖表 | `serde`（带 derive 特性） | `src/` 一处也没用 |
+
+白话：新人和产品经理看的那份「结构说明」——分层表、落点图——描述的是重构前的世界。这与第三节、第四节是同一种病在文档层的重演：同一个结构存了几份，其中几份已经死了，而没有任何机制发现它们死了。
+
+## 七、同一张图上健康的部分
+
+体检也得报健康项，下面三处的建模是干净的，理由与前面五个问题正好相反。
+
+- 状态只有一份真相：进度、完结、待拍板都不落字段，随时由「定义 + 流水」重算。改定义不会留下过期的状态副本——这正是第二节那种「几份定义打架」的反面。
+- 占位展开是一次守规矩的变换。函子的一句话定义：把一个映射套进容器里，先套再套结果一样。`Criterion::expanded` 满足它的两条律——不换占位时等于没换（恒等），两次展开等于合成一条 resolve 再展开一次（复合）（读码）。
+- 命令树是穷尽的。余积的一句话定义：一个变体一个分支，合起来覆盖全部。19 条叶子命令由 `cli::run` 一个 match 全覆盖，没有兜底分支——以后加命令忘了写处理，编译期就报错，等不到运行。
+- 错误出口只有一个形状（除 `health`）：实跑三条错误路径——查无此单、查无此流、查无此步——退出码都是 1，报错都是「哪一句断了说哪一句」。
+
+## 八、可以变成验收的三个等式
+
+范畴论在这份档案里的用处，最后落到能被检查的等式上。当前状态：
+
+1. 凭证等式「规格串 = 代码串」：不成立，三串实测只有代码串命中实际值。哪一侧是本意，由规格侧定。
+2. 展开等式「先展开后取话 = 先取话后替换」：成立，靠代码自洽，没有测试守着。
+3. 答复等式「19 条命令同一套 `--json` / `--out` / 退出码」：有一个例外，`health`。
+
+外加一个要产品拍板的行为：改工作流步骤名之后，历史工单的进度是保住还是重置。现状是静默重置（第二节实跑），是缺陷还是设计，得产品定——定了它，才谈得上把它写成测试。
+
+改动都落在 quanttide-work 仓，本档案只报告，不代改。
+
+## 九、证据：依赖图
 
 ### 分层与规模
 
@@ -20,15 +145,11 @@
 | 适配与入口（main / cli.rs / cli/ / help / prompts / health） | 10 | 853 | 17% |
 | 合计 | 51 | 5137 | 100% |
 
-体量最大的四件：`workspace/local.rs` 241、`material/mod.rs` 240、`workflow/mod.rs` 238、`order/mod.rs` 216，都贴着 250 行红线（`scripts/validate-line-count.sh` 门槛）。聚合内部 order 十件 1216 行、workflow 七件 912 行。
-
-直接依赖六个 crate：clap 4.6.6（命令树）、serde_json 1.0.151（信封与事件）、serde_yaml 0.9.34（定义与账本读写）、ureq 2.12.1（只在 `health`）、uuid 1.26.1（v4 发号、v5 派生）、serde 1.0.229——最后这个在 `src/` 里一次也没被引用：没有 `use serde`，没有 `Serialize`/`Deserialize`，只是依赖表里挂着。
-
-进程边界四个：`pi`（`order/ai.rs:78`，把一步交给 AI）、`sh -c`（`audit/mod.rs:51`，跑 `run` 判据）、`date`（`clock.rs:7`，取时刻）、`git log`（`material/mod.rs:43`，取文件首次入库日期）；外加 `health` 的一次 HTTP GET。
+直接依赖六个 crate：clap 4.6.6（命令树）、serde_json 1.0.151（信封与事件）、serde_yaml 0.9.34（定义与账本读写）、ureq 2.12.1（只在 `health`）、uuid 1.26.1（v4 发号、v5 派生）、serde 1.0.229（零引用，见第六节）。进程边界四个：`pi`（`order/ai.rs:78`）、`sh -c`（`audit/mod.rs:51`）、`date`（`clock.rs:7`）、`git log`（`material/mod.rs:43`），外加 `health` 的一次 HTTP 请求。
 
 ### 模块邻接
 
-「调」表示有函数调用，「型」表示只引类型（字段、参数、返回值）。只列 `src/` 内真实引用，文档注释里提到但代码没引的不算。
+「调」表示有函数调用，「型」表示只传类型（字段、参数、返回值）。只列 `src/` 内真实引用，文档注释里提到但代码没引的不算。
 
 ```text
 main.rs              → cli                                        调
@@ -80,7 +201,7 @@ artifact/model       → criterion（Criterion，字段类型）              �
 outcome fields paths executor ids clock sha1 → （只到 std / serde_* / uuid）
 ```
 
-三条方向性事实：入口层零被引，`src/` 下没有任何文件引 `crate::cli`，这一条由 `tests/contract.rs` 的「动作层不依赖入口层」整目录扫描钉住；`search → catalog` 单向写在 `search/mod.rs:3` 的注释里并成立；被引最广的是 workspace（16 个文件），其次 outcome（12）、criterion（8）、executor（7）、workflow（7）。
+方向性事实三条：入口层零被引（没有任何文件引 `crate::cli`，由 `tests/contract.rs` 的整目录扫描钉住）；`search → catalog` 单向成立；被引最广的是 workspace（16 个文件），其后 outcome（12）、criterion（8）、executor（7）、workflow（7）。
 
 ### 命令级调用链
 
@@ -129,7 +250,7 @@ show     locate → order_show（order/inspect.rs:20）→ open（order/mod.rs:1
 list     locate → order_list（inspect.rs:86）→ listing（mod.rs:129，逐个 open、按工作流名过滤）
          → progress::finished → emit
 next     locate → [dry-run] → order_next（actions.rs:37）→ open → progress::next_step
-         步骤是 human 则只提示「人做的不替你做」；否则 execute::walk（execute.rs:19），详见下方 AI 链与判据链
+         步骤是 human 则只提示「人做的不替你做」；否则 execute::walk（execute.rs:19）
          → 无闸门且 AI 跑通则 order.append（mod.rs:63）→ events::recorded → 重 open 取 state_line → emit
 done     locate → [dry-run] → order_done（actions.rs:72）→ open → workflow.step
          → execute::record_by_human（execute.rs:130，只跑 rule 判据）→ order.append → events::recorded → emit
@@ -152,7 +273,7 @@ material handlers::material → local::root → material::material（material/mo
          → materials → as_material → first_seen（git log 退回文件名日期）+ stage_of → emit
 help     handlers::help → help::topic（help.rs:52）或 help::guide（help.rs:70）→ emit
 health   handlers::health → health::resolve_base（health.rs:9）→ health::health（health.rs:21）
-         → ureq::get(<base>/health)；失败 eprintln + std::process::exit(1)
+         → ureq::get(<base>/health)；自己打印、自己 exit(1)，不进 emit（见第三节）
 发射     emit（cli/emit.rs:8）
          --out  → catalog::write_json(out, to_output_json)（原文那一栏，没有则整个信封）
          --json → envelope_json（emit.rs:33，data 的键抬到顶层留一轮）→ 打印
@@ -184,7 +305,7 @@ AI     ai::prompt_for → facts_of（order/ai.rs:19）+ expanded_criteria → pr
 | 结构体 | 所在 | 字段与方法引到 |
 |:--|:--|:--|
 | `Cli` | cli.rs:28 | 字段 `command: Command`；只被 `cli` 与两个 handler 读 |
-| `Command` / `WorkflowCommand` / `OrderCommand` | cli/commands.rs | 无仓内依赖，纯参数树；叶子命令共 19 个（顶层 6 + workflow 6 + order 7） |
+| `Command` / `WorkflowCommand` / OrderCommand | cli/commands.rs | 无仓内依赖，纯参数树；叶子命令共 19 个（顶层 6 + workflow 6 + order 7） |
 | `Outcome` | outcome.rs:12 | 字段 `data: Option<serde_json::Value>`；`new` / `lines` / `with_first` / `to_json` / `to_output_json` |
 | `LocalWorkspace` | workspace/local.rs:35 | `order_file`（:97）收 `&WorkOrder`（型）；`workspace_id` → `ensure` → `Workspace` 与 `workspace::events::created`；`artifact_path` → `Artifact::named` + `place` |
 | `Workspace` | workspace/model.rs:15 | `new` → `ids::new_id` + `clock::now`；`parse` / `to_mapping` |
@@ -204,161 +325,3 @@ AI     ai::prompt_for → facts_of（order/ai.rs:19）+ expanded_criteria → pr
 | `Material` | material/mod.rs:13 | 无依赖；`missing()` 查四字段 |
 | `Facts` | prompts.rs:23 | 十个 `String` 字段；`facts_of` 拼，`prompt_for` / `judge_prompt` 消 |
 | `WorkflowError` | workflow/yaml.rs:10 | `String` newtype，包 `validate` 的报错文字 |
-
-### 环与越线
-
-双向环三个。`workspace ⇄ order`：型边是 `workspace/local.rs:97` 的 `order_file(&WorkOrder)`，调用边是 `Order::save` → `write_yaml` 等六个文件；`workspace ⇄ events`：两侧都是真调用（`append` → `workspace_id`，`workspace::events::created` → `append`）；`order ⇄ prompts`：调用边是 `order/ai` 引 `prompts` 四个函数，型边是 `previous_records` 收 `&[WorkRecord]`。另有一个三元环 `workspace → order → workflow → workspace`，首条是型边。
-
-运行时真正会来回走的只有 `workspace ⇄ events` 一条：`ensure` 写完 `workspace.yaml` 才发 `WorkspaceCreated`，嵌套那次进来时身份已在，不再下钻（`local.rs:111-127`）。其余环里型边过编译器、不过运行时。
-
-越线一处：`order/execute.rs:47-48` 与 `136-137` 调 `crate::audit`，而 CONTRIBUTING 第 31 行写「服务可依赖聚合，聚合不得依赖服务」。其中 `audit::items_of` 只是 `criterion::items_of` 的再导出（`audit/mod.rs:23`），真正跨层的只有 `audit::run`；这一条没有测试钉住，contract.rs 只钉入口层方向。
-
-### 约定文档对账
-
-| 文档与位置 | 写的 | 现状 |
-|:--|:--|:--|
-| CONTRIBUTING.md:13 适配层 | 列有 `locate/` | 目录不存在，已并入 `workspace/`（提交 `79d0204`） |
-| CONTRIBUTING.md:31 依赖单向 | 「服务可依赖聚合，聚合不得依赖服务」 | `order/execute.rs` 调 `audit::run` 四处，无测试钉住 |
-| CONTRIBUTING.md:33 依赖单向 | 「聚合之间的环已经不存在……workspace 一件也不引」 | `workspace/local.rs` 引 `order` 与 `artifact`，上节三个双向环都在 |
-| docs/dev-guide/index.md:15、46、60 | 落点图与正文三处列 `locate/` | 同上，落点图滞后于 `4457a2e`、`79d0204` 两次重构 |
-| criterion/model.rs:96 注释 | 落点见 `crate::task::execute` | 仓里没有 `task` 模块，落点实为 `order::execute` |
-| ids.rs:16-17 注释 | 串「上级凭证/类别/名字」 | 代码是参数后追加类别，即「上级凭证/名字/类别」（ids.rs:28-31） |
-| quanttide-work docs/specification/process/workflow.md:18 | `uuid5(命名空间, "<工作区 id>/<工作流名>")` | 代码多一段类别，公式与实现对不上 |
-| Cargo.toml 依赖表 | `serde = { version = "1", features = ["derive"] }` | `src/` 无一处引用 |
-| tests/contract.rs 入口层扫描清单 | 45 行文件名 | `workspace/{events,mod,model}.rs` 各列两次 |
-
-凭证那一条可以实测：同一工作区 id `d169ce33-1daf-446b-a7e7-229bdd49a3b4`、名字 `demo`，命名空间 `90cf5627-95f3-5e25-ba48-47d50dee6e09`：
-
-| 来源 | 串法 | uuid5 结果 |
-|:--|:--|:--|
-| 规格 workflow.md:18 | `工作区id/工作流名` | `03a3ddd1-302e-50f1-ace5-d2e74b5777f4` |
-| ids.rs 注释 | `工作区id/workflow/工作流名` | `8478d7a7-231c-50b4-902f-dd97ac575e8e` |
-| 代码 ids.rs:28-31 | `工作区id/工作流名/workflow` | `7976aabb-d5a9-577a-ae60-39baab92ed87` |
-
-第三行就是实跑 `workflow show demo` 打出的 id——规格与注释两串都算不出它。步骤那层同理：规格串 `工作流id/甲` 算得 `b9950d55-…`，代码串 `工作流id/甲/step` 算得 `ae320ca3-8d49-5179-86e7-c9a5ae2e954b`，与事件负载里的 `step_id` 一致。此处只报告，改规格还是改代码由规格仓定。
-
-## 二、范畴论分析
-
-### 读法
-
-范畴论在这里只用六个词：对象、态射、复合、单位、积与余积、拉回。对象就是类型，态射就是有名字有签名的函数，复合就是把一个的返回喂给下一个，单位就是原样返回的那条。下面每小节先给这个小节那个词的一句话定义，再摆真实签名，能跑的给实测值，跑不了的给文件行；没有代码落点的说法不写。
-
-### 对象与态射
-
-对象是上一部分那 27 个 struct 与 enum，外加 `order/execute.rs:13` 的元组别名 `type Judging = (String, String, String)` 与单元 `()`。态射按方向分五组，签名全是真的：
-
-```text
-YAML → 领域    validate: (&Yaml) -> Result<(), DefinitionError>   workflow/read.rs:54
-               Workflow::of: (&Yaml) -> Workflow                  workflow/read.rs:39
-               Step::of: (&Yaml) -> Step                          workflow/read.rs:17
-               criterion_of: (&Yaml) -> Criterion                 criterion/read.rs:15
-               WorkOrder::of: (&Yaml) -> WorkOrder                order/model.rs
-领域 → YAML    WorkOrder::to_yaml                                 order/model.rs
-               Workspace::to_mapping                              workspace/model.rs
-领域 → JSON    events::yaml_to_json: (&Yaml) -> Json              events.rs:40
-               Outcome::to_json / to_output_json                  outcome.rs
-               workflow::events::to_json: (&Workflow) -> Json     workflow/events.rs
-领域 → 领域    Workflow::credentials(self, &str) -> Workflow       workflow/model.rs:62
-               Criterion::expanded<F>(self, F) -> Criterion        criterion/model.rs:97
-               items_of: &[Criterion] -> Vec<RuleItem>            criterion/items.rs:24
-               progress::{done_steps, next_step, finished}        order/progress.rs
-领域 → Outcome 十八个动作函数：workflow 六个、order 七个、
-               catalog / audit / search / material / help::guide
-Outcome → 输出 emit: (Outcome, &Cli) -> i32                       cli/emit.rs:8
-```
-
-复合就是相邻两个函数的类型对得上。真实一条，从磁盘到退出码：
-
-```text
-handlers::search(&str, bool, &Cli)
-  → local::root(Option<&Path>) -> PathBuf                 根
-  → search::search(&Path, &str, bool) -> Outcome          建索引：内部走 catalog::build → artifact::locate
-  → Outcome::with_first(String) -> Outcome                添一行「工作区：…」
-  → emit(Outcome, &Cli) -> i32                            打印
-  → std::process::exit(i32)                               main.rs:27
-```
-
-单位的例子两个，都可验证：`paths::replace_placeholders` 在 resolve 全部返回 `None` 时把字符串原样拼回，连 `{{` 都不带地提前返回（`paths.rs:28`）——不换占位等于没换；`LocalWorkspace::resolve` 四处位置全给了值时逐处照收（`local.rs:48-72`），装载等于没装载。这两个「等于没做」在范畴里就是单位态射。
-
-### 积与余积
-
-积的定义：几个对象拼成一件，取字段就是投影。`Order` 是标准件——`open()`（`order/mod.rs:103`）与 `create()`（:167）都在末尾拼 `Order{locate, payload, workflow}`，`.locate` / `.payload` / `.workflow` 三个访问就是投影，三样缺一这个积就合不起来，所以「工单打不开」的报错也分三种。`Facts` 是十个字符串的积，由 `facts_of`（`order/ai.rs:19`）一次拼装、`prompt_for` / `judge_prompt` 整体消费。
-
-余积的定义：几个对象并成一族，`match` 一个分支一个对象，合起来必须穷尽。仓里五处大的余积：`Command` 八个变体（叶子 19 条命令）由 `cli::run`（`cli.rs:68`）一个 match 消成 `i32`；`Criterion` 六个变体由 `Criterion::executor`（`criterion/model.rs:54`）与 `audit::check`（`audit/mod.rs:26`）两处分别消去；`Fault` 十八个变体由 `Fault::text` 消成一句人话；`Position` 三个变体由 `phrase` 消成话头；`RuleKind` 四个变体由 `audit::check` 消成四种跑法。
-
-单元 `()` 是终点对象：`ensure()`、`validate()` 都返回 `Result<(), String>`，不产内容，只说成不成。空枚举（初始对象）仓里没用到。
-
-白话一句：命令进来是余积的消去，结果出去是积的投影，中间所有函数都是这两件事的组合。
-
-### 单子与失败管道
-
-`Result<T, String>` 的定义：一条可能失败的管道件，每步返回 `Result`，`?` 接力，错误串原样往上冒，哪步断了就停在哪步。这是仓里最厚的一条链，`order::open` 四步接力：读文件、`serde_yaml` 解析、`record::validate_yaml` 校验、`workflow_by_id` 找所引工作流，任何一步 `Err` 都直接返回调用方。
-
-实跑三条错误路径，退出码都是 1：
-
-```text
-order show 查无此单   → 没有这件工单：/tmp/…/workorders/查无此单.yaml
-workflow show 查无此流 → 没有这条工作流：.xdg/…/workflows/查无此流.yaml
-order done 单一 不存在的步骤 → 所引工作流里没有这一步：不存在的步骤
-```
-
-断点各在 `open` 的第一段、`workflow::open` 的 `exists` 检查、`order_done` 的 `workflow.step` 查找——三个不同的位置，同一种形状：动作函数拿到 `Err` 的第一件事是 `Outcome::lines(false, vec![error])`，把管道失败翻译成答复。
-
-`Option → Result` 是一族对得齐的箭头（自然变换）：`workflow_by_id` 返回 `Option<Workflow>`，`order/mod.rs:111` 用 `.ok_or_else(|| format!("这单引的工作流不见了（workflow_id={}）", …))` 把它统一抬成 `Err`，`order/mod.rs:74` 对 `workflow.step` 做同一件事。消去处在每个动作开头的 `match … Err(error) => return Outcome::lines(false, …)`。
-
-### 函子与自然变换
-
-函子的定义：把一个映射套进容器里，先套再套结果一样。仓里三个现成容器都只用到 `map` 这一面：`Vec::map`（`workflow/actions.rs` 收步骤名、`audit/mod.rs:76-84` 造逐条结果）、`Option::map`（`order/inspect.rs` 里 `fresh.map(|order| order.state_line()).unwrap_or_default()`）、`Result::map_err`（`workspace/model.rs:48` 包装身份解析错误）。
-
-真正带结构的是 `Criterion::expanded`。它的参数是一条 resolve：`&str → Option<String>`，即「占位名换成哪条路径」；把这类 resolve 按「先 `r1`、`r1` 的产物再过 `r2`」接起来就是复合，全返回 `None` 的那条是单位，于是 resolve 自己构成一个小范畴，`expanded` 把每条 resolve 送成 `Criterion` 上的一个自同态：
-
-- 恒等律成立：resolve 全返回 `None` 时 `replace_placeholders` 原样返回，展开等于没展开。
-- 复合律成立：按上述接法合成一条 resolve，一次展开等于依次两次展开，因为接法本身就定义成「`r1` 的产物再过 `r2`」。
-
-实值例（判据取自 `tests/definition_check.rs:17` 与 `tests/defaults.rs:85` 真写的 `file: '{{report}}'`）：resolve 把 `report` 换成 `artifacts/report/单一.md`（由 `place_of` → `LocalWorkspace::artifact_path` → `artifact::place::place` 算出，与实跑 `order show 单一` 打出的 `artifacts/report/单一.md` 一致），展开后的 `Criterion` 就是把 `{{report}}` 换成这条路径的那一条。
-
-自然变换的定义：一族箭头横着对得齐——两条不同走法，终点相同。这里有一条真的：
-
-```text
-Criterion  ──text()──→  String
-   │ expanded(r)             │ replace_placeholders(r)
-   ▼                         ▼
-Criterion  ──text()──→  String
-```
-
-取 `Criterion::PathExists{path: "{{report}}", description: ""}`：往上走再往右，`text()` 空说明走格式分支得「存在：{{report}}」，再替换得「存在：artifacts/report/单一.md」；先往右再往下，替换后是 `PathExists{path: "artifacts/report/单一.md"}`，`text()` 得同一串。两条路都过，因为 `expanded` 对说明与路径一视同仁地套同一次替换（`criterion/model.rs:97-135`），而 `text()` 只是从这两个字段拼话（:78-91）。
-
-### 三张交换图
-
-第一张交换，凭证派生。同一个 `Workflow` 对象，两条路：读定义后走 `Workflow::credentials` 现算 id，或不读定义直接拿 `(工作区 id, 名字)` 喂 `ids::derive`。实测两路交于 `7976aabb-d5a9-577a-ae60-39baab92ed87`——与 `workflow show`、工单封面、事件负载三处看到的完全一致。上一节的表同时说明：规格与注释各自描述的那条路都交不到这个点。
-
-第二张不交换，工作流内容 → JSON 有两条路，结果不同。实测同一条 `demo` 定义：
-
-```text
-事件 WorkflowCreated 的 criteria    → [{"executor": "rule", "description": "存在：data/journal/README.md"}]
-workflow show --json 的 payload.criteria → [{"executor": "rule", "path": "data/journal/README.md"}]
-```
-
-左路是 `workflow::events::to_json` 手搓，判据字段被折进 `description`，还补了派生 id；右路是 `serde_json::to_value(&flow.payload)` 原样搬 YAML，保字段但没有 id。两者从同一个内容出发却不同构——改判据字段时，一处只动左路、一处只动右路，谁也不会提醒谁。
-
-第三张交换，`--json` 信封。`emit` 的两个分支从同一个 `Outcome` 取：`--json` 走 `to_json`（四样信封），`--out` 走 `to_output_json`（`data` 原文），同源显然交换。实跑 `catalog --json` 还能看到兼容层：`count` 同时出现在顶层与 `data` 内——`envelope_json`（`emit.rs:33`）把 `data` 的键抬到顶层留一轮，是故意加宽的一次不交换，注释写明「只加不改，下一轮删」。
-
-### 极限与余极限
-
-拉回的定义：两支箭头指向同一个键，把两边键相同的对象配成一对。仓里两处真拉回。
-
-工单打开是 `WorkOrder --workflow_id--> WorkflowId ←--id-- Workflow` 的拉回，配对处是 `workflow_by_id`（`order/mod.rs:120`）：遍历区内定义、逐条现算凭证、认 id 相等的那条；配不齐就 `Err("这单引的工作流不见了")`。进度判定是 `records --step--> 步骤名 ←--name-- steps` 的拉回，`progress::done`（`order/progress.rs:68`）拿名字对名字，配上且 `is_succeeded` 为真即算走过。值得注意的是账上另存了一枚 `step_id`，`record::validate_records` 只验它是 UUID（`order/record.rs:90`），不与工作流对接——真正接头用的是名字。
-
-积就是上一节的 `Order`。余极限就是 `Command` 那棵 19 个叶子的树，`cli::run` 的 match 把它整体消成一位退出码；`Outcome → {0, 1}`（`emit.rs:26`）与 `health` 失败时直接 `exit(1)`，是同一个塌缩的两处出口。
-
-事件侧是一个幺半群同态：`events.jsonl` 是「行」的自由幺半群，`events::append` 先拼一行再追加，连拼两次等于一次拼接，内容与顺序都不改。规范要求 `WorkspaceCreated` 必须是第一行，实跑首行正是它——这条规范等于指定了一条全局截面。
-
-### 白话总成绩
-
-把整张图摆成范畴论，买到三件能直接用的事。
-
-第一，同一对类型之间出现两个函数，就是「箭头不唯一」，改一处必漏另一处。仓里现在有三组：`short` 两个（`workspace/local.rs:214` 按字符串剥前缀，`catalog/mod.rs:84` 按路径组件剥，`path == root` 时一个给原样一个给空串）、`text_of` 三个（`fields.rs`、`workflow/yaml.rs`、`order/model.rs` 各一份，语义相同）、工作流内容转 JSON 两条（事件手搓 vs `show` 原样，已经不一致）。
-
-第二，环不可怕，要分清哪条是型边。四个环里三条含型边——`order_file(&WorkOrder)` 与 `previous_records(&[WorkRecord])` 两处把类型缝在一起，编译器不查、运行时不走；把这两处换成路径或 id 参数，环当场散架。唯一两条真调用边构成的环是 `workspace ⇄ events`，靠「先写身份再发事件」的写盘顺序终止，这个终止条件没有测试钉住，动 `ensure` 顺序就会递归。
-
-第三，交换图可以直接落成测试。凭证那张已有实测值（规格、注释、代码三串只有一串命中实际值）；`text ∘ expanded = replace ∘ text` 那张现在只靠代码自洽；事件与 `show` 那张已知不交换，是有意的两种口径还是漏改，得由规格侧定。三张里已知的偏差都在上面「约定文档对账」一节，本档案只报告，不代改。
