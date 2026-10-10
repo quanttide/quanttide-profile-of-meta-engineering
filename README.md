@@ -19,6 +19,7 @@
 | `quanttide-human/` | 招聘与考核一侧的档案 |
 | `quanttide-media/` | 新媒体运营一侧的档案 |
 | `quanttide-course/` | 课程设置一侧的档案 |
+| `quanttide-delib/` | 议事与决议一侧的档案 |
 
 ## 概述
 
