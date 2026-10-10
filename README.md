@@ -16,6 +16,7 @@
 | `quanttide-founder/` | 这副骨架在创始人三个集上的部署 |
 | `quanttide-agent/` | 智能体一侧的档案 |
 | `quanttide-relation/` | 主体之间关系的档案 |
+| `quanttide-human/` | 招聘与考核一侧的档案 |
 | `quanttide-media/` | 新媒体运营一侧的档案 |
 
 ## 概述
