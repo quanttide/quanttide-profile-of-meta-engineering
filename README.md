@@ -18,6 +18,7 @@
 | `quanttide-relation/` | 主体之间关系的档案 |
 | `quanttide-human/` | 招聘与考核一侧的档案 |
 | `quanttide-media/` | 新媒体运营一侧的档案 |
+| `quanttide-coures/` | 课程设置一侧的档案 |
 
 ## 概述
 
