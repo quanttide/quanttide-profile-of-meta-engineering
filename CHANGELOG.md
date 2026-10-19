@@ -10,6 +10,10 @@
 
 ## [Unreleased]
 
+### 新增
+
+- `quanttide-agent/communication-quality.md`：本地 AI 输出的沟通质量治理（需求 / 意图 / 规格 / 实现），出处 quanttide-connect 域日志 2026-10-19 及同日补记
+
 ## [0.1.0] - 2026-10-19
 
 ### 新增
