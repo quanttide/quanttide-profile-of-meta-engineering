@@ -161,7 +161,7 @@ steps:
 
 ## 实现
 
-这份定义里能做机械核对的部分，工具箱里已经实现。读它的是 `Workflow::from_value`：
+这份定义里能做机械核对的部分，标准库里已经实现。读它的是 `Workflow::from_value`：
 
 ```rust
 use quanttide_work::workflow::Workflow;
