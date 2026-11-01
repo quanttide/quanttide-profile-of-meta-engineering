@@ -12,6 +12,7 @@
 
 ### 变更
 
+- `quanttide-design/` 七份冷启动稿件已收录进领域仓 `quanttide-design`：领域仓 AGENTS 冷启动；`data/journal`、`data/profile`、`data/intention` 三仓 AGENTS 补齐（命名表落 profile 的 `quanttide/` 通用设计语言保留项，与既有理想体验档案并存不覆盖）；新建并注册 `data/insight`、`data/roadmap`、`data/brochure`（quanttide-{insight,roadmap,brochure}-of-interaction-design）；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `quanttide-design/` 落七份冷启动稿件：意图（创始人原话「命名是分水岭，熟悉范式但叫不出名」）；两判据落死（名字从社区通行名对齐取用不发明、只从真实实践收录不铺市场清单），条目带实践适用条件与实例；核心循环＝遇到→对名→确认→落表→复用；首条素材是媒体云的列表-详情（master-detail）；三条待定（切分粒度、确认方式）。insight/roadmap/brochure 三仓未建，稿件已备
 
 
@@ -52,6 +53,7 @@
 
 ### 变更
 
+- `quanttide-design/` 七份冷启动稿件已收录进领域仓 `quanttide-design`：领域仓 AGENTS 冷启动；`data/journal`、`data/profile`、`data/intention` 三仓 AGENTS 补齐（命名表落 profile 的 `quanttide/` 通用设计语言保留项，与既有理想体验档案并存不覆盖）；新建并注册 `data/insight`、`data/roadmap`、`data/brochure`（quanttide-{insight,roadmap,brochure}-of-interaction-design）；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `quanttide-design/` 落七份冷启动稿件：意图（创始人原话「命名是分水岭，熟悉范式但叫不出名」）；两判据落死（名字从社区通行名对齐取用不发明、只从真实实践收录不铺市场清单），条目带实践适用条件与实例；核心循环＝遇到→对名→确认→落表→复用；首条素材是媒体云的列表-详情（master-detail）；三条待定（切分粒度、确认方式）。insight/roadmap/brochure 三仓未建，稿件已备
 
 
