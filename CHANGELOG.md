@@ -12,6 +12,7 @@
 
 ### 变更
 
+- `quanttide-support/` 三份冷启动稿件（`journal.md`、`profile.md`、`brochure.md`）已收录进领域仓 `quanttide-support`：领域仓 `AGENTS.md` 认知段改写，其 `data/journal`、`data/profile`、`data/brochure` 三子仓各自拿到 `AGENTS.md`；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `CONTRIBUTING.md` 新增「跨仓搬运」节：冷启动稿件收录前是正本不能删、收录后源侧删除不留副本，留痕靠 CHANGELOG 与 git 历史
 - 新增 `quanttide-support/brochure.md`（对外口径）：一句定位、客户视角三步、客户能期待的两件事、保密边界；面向同行的售卖口径占位待立。对外材料不出现内部术语与机制
 - `quanttide-support/index.md` 按两段分解为 `journal.md`（记录段：工单 → 工作日志 → 客户确认，落 `journal` 范畴，含一天一文件多张追加的写法、四格正常结局与五个任务单元）与 `profile.md`（加工整理段：日志 → 解决方案，落 `profile` 范畴，含适用条件、快照替换与旧版退位），供两仓 AGENTS 冷启动取用
