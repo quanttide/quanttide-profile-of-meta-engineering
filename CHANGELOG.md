@@ -12,6 +12,9 @@
 
 ### 变更
 
+- `quanttide-design/` 落七份冷启动稿件：意图（创始人原话「命名是分水岭，熟悉范式但叫不出名」）；两判据落死（名字从社区通行名对齐取用不发明、只从真实实践收录不铺市场清单），条目带实践适用条件与实例；核心循环＝遇到→对名→确认→落表→复用；首条素材是媒体云的列表-详情（master-detail）；三条待定（切分粒度、确认方式）。insight/roadmap/brochure 三仓未建，稿件已备
+
+
 - `quanttide-consult/` 七份冷启动稿件已全部收录进领域仓 `quanttide-consult`：六资产仓（journal/profile/intention/insight/roadmap/brochure）AGENTS 全部就位并注册为子模块，领域仓 AGENTS 认知段在初始化时已写入；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `quanttide-consult/` 创始人作为第一个客户入档（落死）：关系第一端放宽为「提出诉求的一方」，创始人同格不特例——档案照建、判据一视同仁不给特权、结算豁免打「内部关系」标签；「想得起我们」的落点第一次实测在创始人身上
 - `quanttide-consult/` 落七份冷启动稿件：重点＝管理咨询关系（创始人给定，对标心理咨询，形态 lite/studio 入口，项目制不进本域）；落死两条判据（关系两端量潮↔企业、死活看客户有事想不想得起我们）；三条待定（「想得起」落点、lite/studio 分界、关系档案字段）；洞察三条候选带证伪条件、路线图站空待判据。领域仓未建，注入待建仓后
@@ -48,6 +51,9 @@
   - `quanttide-agent/`、`quanttide-course/`、`quanttide-founder/`、`quanttide-github/`、`quanttide-media/`、`quanttide-relation/`、`quanttide-think/` 各 1 篇
 
 ### 变更
+
+- `quanttide-design/` 落七份冷启动稿件：意图（创始人原话「命名是分水岭，熟悉范式但叫不出名」）；两判据落死（名字从社区通行名对齐取用不发明、只从真实实践收录不铺市场清单），条目带实践适用条件与实例；核心循环＝遇到→对名→确认→落表→复用；首条素材是媒体云的列表-详情（master-detail）；三条待定（切分粒度、确认方式）。insight/roadmap/brochure 三仓未建，稿件已备
+
 
 - `quanttide-consult/` 七份冷启动稿件已全部收录进领域仓 `quanttide-consult`：六资产仓（journal/profile/intention/insight/roadmap/brochure）AGENTS 全部就位并注册为子模块，领域仓 AGENTS 认知段在初始化时已写入；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `quanttide-consult/` 创始人作为第一个客户入档（落死）：关系第一端放宽为「提出诉求的一方」，创始人同格不特例——档案照建、判据一视同仁不给特权、结算豁免打「内部关系」标签；「想得起我们」的落点第一次实测在创始人身上
