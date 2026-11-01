@@ -31,7 +31,7 @@
 
 ## 两段分工与落位
 
-第一段（session → 落档记录，标偏离）落 `journal` 范畴，只增不改，细节见 `journal.md`；第二段（偏离 → harness 修正）落 `profile` 范畴，快照替换、旧版退位，细节见 `profile.md`；对外口径落 `brochure`，细节见 `brochure.md`。子系统不自建容器。
+第一段（session → 落档记录，标偏离）落 `journal` 范畴，只增不改，细节见 `journal.md`；第二段（偏离 → harness 修正）落 `profile` 范畴，快照替换、旧版退位，细节见 `profile.md`；要到哪去落 `intention`（未来·自我类），创始人给定、不代配，细节见 `intention.md`；对外口径落 `brochure`，细节见 `brochure.md`。子系统不自建容器。
 
 ## 设计范式三段
 
@@ -44,6 +44,7 @@
 | 定 session、偏离、harness 修正的判定 | human | 给定一段记录，判得出偏离在哪、修正落没落 |
 | 定修正的判据 | human | 已落死：三级，无终态（假设入档 / 暂时在位 / 证伪退位） |
 | 定什么算偏离 | human | 第一条待定判据落死 |
+| 定意图 | human | 创始人给定「要到哪去」一句话，岔路问答校验过 |
 | 找偏离 | agent | 扫落档记录，把预期与实际的落差标出来 |
 | 落 harness 修正 | human | 一处偏离对应一处修订，替换在位旧版 |
 | 核不再偏 | agent | 同类 session 复现检查，回写判据 |
