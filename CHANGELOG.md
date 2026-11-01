@@ -12,6 +12,9 @@
 
 ### 变更
 
+- `quanttide-consult/` 落七份冷启动稿件：重点＝管理咨询关系（创始人给定，对标心理咨询，形态 lite/studio 入口，项目制不进本域）；落死两条判据（关系两端量潮↔企业、死活看客户有事想不想得起我们）；三条待定（「想得起」落点、lite/studio 分界、关系档案字段）；洞察三条候选带证伪条件、路线图站空待判据。领域仓未建，注入待建仓后
+
+
 - `quanttide-agent/` 七份冷启动稿件已收录进领域仓 `quanttide-agent`：领域仓 AGENTS 认知段增核心循环（session → 找偏离 → 修 harness）与三级判据，其 journal/profile/intention/insight/roadmap/brochure 六子仓各自拿到 AGENTS（profile、roadmap 合并不覆盖存量规矩）；本仓源侧删除，不留副本（原文件由 git 历史取回），`pi-to-hermes.md` 不属本次搬运保留
 - `quanttide-agent/` 未来三格补齐：新增 `insight.md`（判断可错、带证伪条件、不被意图收买，候选洞察「偏离成批出现」待 89 目录验证）与 `roadmap.md`（一步一格可验收、顺序由洞察撑着、两头对账）；`intention.md` 补「当验收标尺不参与论证」，`index.md` 落位与任务单元同步
 - `quanttide-agent/` 新增 `intention.md`（未来·自我类）：本域要到哪去，创始人给定、不代配；意图只写方向不写路径指标，岔路问答校验，快照式替换
@@ -43,6 +46,9 @@
   - `quanttide-agent/`、`quanttide-course/`、`quanttide-founder/`、`quanttide-github/`、`quanttide-media/`、`quanttide-relation/`、`quanttide-think/` 各 1 篇
 
 ### 变更
+
+- `quanttide-consult/` 落七份冷启动稿件：重点＝管理咨询关系（创始人给定，对标心理咨询，形态 lite/studio 入口，项目制不进本域）；落死两条判据（关系两端量潮↔企业、死活看客户有事想不想得起我们）；三条待定（「想得起」落点、lite/studio 分界、关系档案字段）；洞察三条候选带证伪条件、路线图站空待判据。领域仓未建，注入待建仓后
+
 
 - `quanttide-agent/` 七份冷启动稿件已收录进领域仓 `quanttide-agent`：领域仓 AGENTS 认知段增核心循环（session → 找偏离 → 修 harness）与三级判据，其 journal/profile/intention/insight/roadmap/brochure 六子仓各自拿到 AGENTS（profile、roadmap 合并不覆盖存量规矩）；本仓源侧删除，不留副本（原文件由 git 历史取回），`pi-to-hermes.md` 不属本次搬运保留
 - `quanttide-agent/` 未来三格补齐：新增 `insight.md`（判断可错、带证伪条件、不被意图收买，候选洞察「偏离成批出现」待 89 目录验证）与 `roadmap.md`（一步一格可验收、顺序由洞察撑着、两头对账）；`intention.md` 补「当验收标尺不参与论证」，`index.md` 落位与任务单元同步
