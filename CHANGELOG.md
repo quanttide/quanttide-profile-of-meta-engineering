@@ -10,6 +10,10 @@
 
 ## [Unreleased]
 
+### 变更
+
+- `quanttide-support/index.md` 按两段分解为 `journal.md`（记录段：工单 → 工作日志 → 客户确认，落 `journal` 范畴，含一天一文件多张追加的写法、四格正常结局与五个任务单元）与 `profile.md`（加工整理段：日志 → 解决方案，落 `profile` 范畴，含适用条件、快照替换与旧版退位），供两仓 AGENTS 冷启动取用
+
 ### 新增
 
 - `quanttide-support/index.md` 两段落位定死：记录段（原始回答 → 工作日志）落 `journal` 范畴，加工整理段（日志 → 解决方案）落 `profile` 范畴，子系统不自建容器
