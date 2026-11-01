@@ -12,6 +12,9 @@
 
 ### 变更
 
+- 试迁第一例：`quanttide-human/recuritment.md`《改进招聘考核流程》迁至 quanttide-human 域档案仓 `quanttide-tech/performance/recuritment.md`（目标仓 `85750a8`），源侧删除不留副本；四阶段档案移出本仓的第一步，落位摩擦待复盘
+
+
 - 结构调整：四阶段（需求、意图、规格、实现）移出本仓——流程已由 quanttide-code 吸收为正式体系，教程在教程仓；本仓体裁只留元认知快照（骨架＋各主体部署）。README 概述与 CONTRIBUTING 相应三节改写，新增目录/跨仓搬运/提交规矩不变。仓内现存约十份四阶段式档案待处置（不删不迁，等落位决定）
 
 
@@ -55,6 +58,9 @@
   - `quanttide-agent/`、`quanttide-course/`、`quanttide-founder/`、`quanttide-github/`、`quanttide-media/`、`quanttide-relation/`、`quanttide-think/` 各 1 篇
 
 ### 变更
+
+- 试迁第一例：`quanttide-human/recuritment.md`《改进招聘考核流程》迁至 quanttide-human 域档案仓 `quanttide-tech/performance/recuritment.md`（目标仓 `85750a8`），源侧删除不留副本；四阶段档案移出本仓的第一步，落位摩擦待复盘
+
 
 - 结构调整：四阶段（需求、意图、规格、实现）移出本仓——流程已由 quanttide-code 吸收为正式体系，教程在教程仓；本仓体裁只留元认知快照（骨架＋各主体部署）。README 概述与 CONTRIBUTING 相应三节改写，新增目录/跨仓搬运/提交规矩不变。仓内现存约十份四阶段式档案待处置（不删不迁，等落位决定）
 
