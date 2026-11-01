@@ -12,6 +12,7 @@
 
 ### 变更
 
+- `quanttide-agent/` 冷启动稿件按创始人原话改写：重心不在挖掘知识经验，在「找 AI 偏离的细节 → 修 harness」——偏离是第二段唯一选料入口，落档记录增「偏离在哪」字段，产物为 harness 修正（loops/skills/prompts/agents 修订）；两条判据（修正判据、偏离粒度）待岔路问答
 - `quanttide-agent/` 落四份冷启动稿件（`index.md` 总览、`journal.md` 记录段 session→落档、`profile.md` 加工整理段落档→提炼物、`brochure.md` 对外口径）：沿用 profile 仓现成提炼物组织（loops/skills/prompts/agents，按业务域），三条判据（办完、选料、结局格）待岔路问答落定，不先填
 
 - `quanttide-support/` 三份冷启动稿件（`journal.md`、`profile.md`、`brochure.md`）已收录进领域仓 `quanttide-support`：领域仓 `AGENTS.md` 认知段改写，其 `data/journal`、`data/profile`、`data/brochure` 三子仓各自拿到 `AGENTS.md`；本仓源侧删除，不留副本（原文件由 git 历史取回）
@@ -38,6 +39,7 @@
 
 ### 变更
 
+- `quanttide-agent/` 冷启动稿件按创始人原话改写：重心不在挖掘知识经验，在「找 AI 偏离的细节 → 修 harness」——偏离是第二段唯一选料入口，落档记录增「偏离在哪」字段，产物为 harness 修正（loops/skills/prompts/agents 修订）；两条判据（修正判据、偏离粒度）待岔路问答
 - `quanttide-agent/` 落四份冷启动稿件（`index.md` 总览、`journal.md` 记录段 session→落档、`profile.md` 加工整理段落档→提炼物、`brochure.md` 对外口径）：沿用 profile 仓现成提炼物组织（loops/skills/prompts/agents，按业务域），三条判据（办完、选料、结局格）待岔路问答落定，不先填
 
 - 《量潮标准范畴》移出至案例集 `quanttide-gallery-of-meta-engineering`（移走不留副本）
