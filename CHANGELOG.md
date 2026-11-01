@@ -12,6 +12,7 @@
 
 ### 新增
 
+- `quanttide-support/index.md`《客户支持》：工单（问题侧）与解决方案（结果侧）的分离照抄议事域议题/决议的骨架，核心断言「办完不由已回答决定，由挂上可取用的解决方案决定」，五个任务单元；规格、实现待补；出处 `quanttide-support` 域日志 2026-09-01
 - `quanttide-connect/communication-quality.md`：本地 AI 输出的沟通质量治理（需求 / 意图 / 规格 / 实现），出处 quanttide-connect 域日志 2026-10-19 及同日补记
 
 ## [0.1.0] - 2026-10-19

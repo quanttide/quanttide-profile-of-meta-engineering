@@ -21,6 +21,7 @@
 | `quanttide-course/` | 课程设置一侧的档案 |
 | `quanttide-delib/` | 议事与决议一侧的档案 |
 | `quanttide-connect/` | 沟通一侧的档案：人机之间如何把一件事讲清楚 |
+| `quanttide-support/` | 客户支持一侧的档案：工单与解决方案 |
 | `quanttide-meta/` | 元工程体系自身的档案 |
 
 ## 概述
