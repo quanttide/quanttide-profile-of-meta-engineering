@@ -12,6 +12,8 @@
 
 ### 变更
 
+- `quanttide-agent/` 落四份冷启动稿件（`index.md` 总览、`journal.md` 记录段 session→落档、`profile.md` 加工整理段落档→提炼物、`brochure.md` 对外口径）：沿用 profile 仓现成提炼物组织（loops/skills/prompts/agents，按业务域），三条判据（办完、选料、结局格）待岔路问答落定，不先填
+
 - `quanttide-support/` 三份冷启动稿件（`journal.md`、`profile.md`、`brochure.md`）已收录进领域仓 `quanttide-support`：领域仓 `AGENTS.md` 认知段改写，其 `data/journal`、`data/profile`、`data/brochure` 三子仓各自拿到 `AGENTS.md`；本仓源侧删除，不留副本（原文件由 git 历史取回）
 - `CONTRIBUTING.md` 新增「跨仓搬运」节：冷启动稿件收录前是正本不能删、收录后源侧删除不留副本，留痕靠 CHANGELOG 与 git 历史
 - 新增 `quanttide-support/brochure.md`（对外口径）：一句定位、客户视角三步、客户能期待的两件事、保密边界；面向同行的售卖口径占位待立。对外材料不出现内部术语与机制
@@ -35,6 +37,8 @@
   - `quanttide-agent/`、`quanttide-course/`、`quanttide-founder/`、`quanttide-github/`、`quanttide-media/`、`quanttide-relation/`、`quanttide-think/` 各 1 篇
 
 ### 变更
+
+- `quanttide-agent/` 落四份冷启动稿件（`index.md` 总览、`journal.md` 记录段 session→落档、`profile.md` 加工整理段落档→提炼物、`brochure.md` 对外口径）：沿用 profile 仓现成提炼物组织（loops/skills/prompts/agents，按业务域），三条判据（办完、选料、结局格）待岔路问答落定，不先填
 
 - 《量潮标准范畴》移出至案例集 `quanttide-gallery-of-meta-engineering`（移走不留副本）
 - `quanttide-github/仓库初始化` 补充 License 约定（文档 CC BY、代码 Apache 2.0）与 submodule 规则、`gh create` 约束
