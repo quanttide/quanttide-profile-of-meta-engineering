@@ -12,6 +12,7 @@
 
 ### 变更
 
+- `quanttide-agent/` 七份冷启动稿件已收录进领域仓 `quanttide-agent`：领域仓 AGENTS 认知段增核心循环（session → 找偏离 → 修 harness）与三级判据，其 journal/profile/intention/insight/roadmap/brochure 六子仓各自拿到 AGENTS（profile、roadmap 合并不覆盖存量规矩）；本仓源侧删除，不留副本（原文件由 git 历史取回），`pi-to-hermes.md` 不属本次搬运保留
 - `quanttide-agent/` 未来三格补齐：新增 `insight.md`（判断可错、带证伪条件、不被意图收买，候选洞察「偏离成批出现」待 89 目录验证）与 `roadmap.md`（一步一格可验收、顺序由洞察撑着、两头对账）；`intention.md` 补「当验收标尺不参与论证」，`index.md` 落位与任务单元同步
 - `quanttide-agent/` 新增 `intention.md`（未来·自我类）：本域要到哪去，创始人给定、不代配；意图只写方向不写路径指标，岔路问答校验，快照式替换
 - `quanttide-agent/` 同任务形态的识别落定：不事前定义，事后指认——按工作目录机械筛、比对偏离描述，对得上才算同一个；规则适用场景绑偏离模式不绑目录，偏离字段写成「预期 X，实际 Y」的可比对形状
@@ -43,6 +44,7 @@
 
 ### 变更
 
+- `quanttide-agent/` 七份冷启动稿件已收录进领域仓 `quanttide-agent`：领域仓 AGENTS 认知段增核心循环（session → 找偏离 → 修 harness）与三级判据，其 journal/profile/intention/insight/roadmap/brochure 六子仓各自拿到 AGENTS（profile、roadmap 合并不覆盖存量规矩）；本仓源侧删除，不留副本（原文件由 git 历史取回），`pi-to-hermes.md` 不属本次搬运保留
 - `quanttide-agent/` 未来三格补齐：新增 `insight.md`（判断可错、带证伪条件、不被意图收买，候选洞察「偏离成批出现」待 89 目录验证）与 `roadmap.md`（一步一格可验收、顺序由洞察撑着、两头对账）；`intention.md` 补「当验收标尺不参与论证」，`index.md` 落位与任务单元同步
 - `quanttide-agent/` 新增 `intention.md`（未来·自我类）：本域要到哪去，创始人给定、不代配；意图只写方向不写路径指标，岔路问答校验，快照式替换
 - `quanttide-agent/` 同任务形态的识别落定：不事前定义，事后指认——按工作目录机械筛、比对偏离描述，对得上才算同一个；规则适用场景绑偏离模式不绑目录，偏离字段写成「预期 X，实际 Y」的可比对形状
