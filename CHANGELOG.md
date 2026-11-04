@@ -12,7 +12,7 @@
 
 ### 变更
 
-- 新增 `quanttide-market/` 档案《市场观察与获客》——五篇日志（2026-08-20 ~ 2026-10-09）按元认知快照体裁提炼，README 目录表同次登记
+- 新增 `quanttide-market/` 格稿组：`journal.md`（记录段）与 `profile.md`（加工整理段）按范畴分格，快照《市场观察与获客》落位，README 目录表同次登记
 - 撤销试迁：`quanttide-human/recuritment.md` 移回本仓原位（目标仓已撤回 `82f0515`），文件原样未动
 
 
