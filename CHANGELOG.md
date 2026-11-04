@@ -12,7 +12,6 @@
 
 ### 变更
 
-- 新增 `quanttide-market/` 格稿组：`journal.md`（记录段）与 `profile.md`（加工整理段）按范畴分格，README 目录表同次登记
 - 撤销试迁：`quanttide-human/recuritment.md` 移回本仓原位（目标仓已撤回 `82f0515`），文件原样未动
 
 
