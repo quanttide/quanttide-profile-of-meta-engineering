@@ -18,6 +18,7 @@
 | `quanttide-relation/` | 主体之间关系的档案 |
 | `quanttide-human/` | 招聘与考核一侧的档案 |
 | `quanttide-media/` | 新媒体运营一侧的档案 |
+| `quanttide-market/` | 市场一侧的档案：观察、信任品获客与无声营销 |
 | `quanttide-course/` | 课程设置一侧的档案 |
 | `quanttide-delib/` | 议事与决议一侧的档案 |
 | `quanttide-connect/` | 沟通一侧的档案：人机之间如何把一件事讲清楚 |
